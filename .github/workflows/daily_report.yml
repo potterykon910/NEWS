@@ -1,0 +1,42 @@
+name: Daily Market Analysis Pipeline
+
+on:
+  schedule:
+    # 한국 시간(KST) 매일 오전 09:00 = UTC 00:00
+    - cron: '0 0 * * *'
+  # GitHub 웹 화면에서 수동으로 즉시 실행할 수 있게 해주는 버튼 활성화
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 환경 세팅
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 패키지 설치
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 데일리 리포트 파일 생성
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python main.py
+
+      - name: 생성된 파일 저장소에 저장(Commit & Push)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add reports/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Add daily report: $(date +'%Y-%m-%d')" && git push)
