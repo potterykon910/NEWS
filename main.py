@@ -63,7 +63,7 @@ def call_gemini(system_instruction, user_query):
             )
             return response.text
         except Exception as e:
-            wait_time = (attempt + 1) * 15
+            wait_time = (attempt + 1) * 30
             print(f"API 호출 지연 ({attempt + 1}/{max_retries}). {wait_time}초 대기 후 재시도: {e}")
             if attempt < max_retries - 1:
                 time.sleep(wait_time)
